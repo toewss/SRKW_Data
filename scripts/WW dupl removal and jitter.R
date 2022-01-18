@@ -23,7 +23,7 @@ suppressMessages(library('sf'))
 
 #----Set working directory----
 
-setwd(here("Data","NGO data"))
+setwd(here("data","NGO data"))
 
 
 #----Load required functions----
@@ -137,6 +137,8 @@ nrow(bccsn1)
 bccsn2 <- read.csv("BCCSN Sightings South Salish Sea May-Oct17&Oct20_MOD.csv", header=TRUE, stringsAsFactors = FALSE, strip.white = TRUE, na.strings = c("NA","na","n/a","N/A",""))
 nrow(bccsn2)
 
+bccsn0<-read.csv("SmrCombinedduplicatesRemoved_BCCSNAlbers.csv", header=T, stringsAsFactors = FALSE, strip.white = TRUE, na.strings = c("NA","na","n/a","N/A",""))
+nrow(bccsn0)
 om <- read.csv("DFO_SRKW2017-18_Sources_MOD.csv", header=TRUE, stringsAsFactors = FALSE, strip.white = TRUE, na.strings = c("NA","na","n/a","N/A",""))
 nrow(om)
 
@@ -145,7 +147,7 @@ nrow(om)
 
 ww <- rbind(bccsn1,bccsn2,om)
 ww <- ww[order(ww$DateTime),]
-
+nrow(bccsn1)+nrow(bccsn2)+nrow(om)
 
 #----Limit time series---
   #We are only including 2017 & 2018 sightings data

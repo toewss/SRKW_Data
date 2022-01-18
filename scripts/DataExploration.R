@@ -54,6 +54,7 @@ summary(Combined)
 summary(OM2018)
 
 df<-BCCSNAlbers
+df<-ww
 #For Combined Only
 df<-Combined
 df$DateT <- as.POSIXct(df$DateTime *3600*24, origin="1900-01-01", tz="GMT")
