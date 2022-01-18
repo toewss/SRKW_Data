@@ -19,8 +19,10 @@ rm(list = ls(all=TRUE)) ; ls()
 
 suppressMessages(library('here'))
 suppressMessages(library('sf'))
-
-
+suppressMessages(library('dplyr'))
+suppressMessages(library('ggplot2'))
+suppressMessages(library('viridis'))
+library(hrbrthemes)
 #----Set working directory----
 
 setwd(here("data","NGO data"))
@@ -131,13 +133,34 @@ duplicates <- function(df, type){
 
 #----Load data----
 
-bccsn1 <- read.csv("BCCSN South Salish Sea 2018-05 to 2020-09_Time_MOD.csv", header=TRUE, stringsAsFactors = FALSE, strip.white = TRUE, na.strings = c("NA","na","n/a","N/A",""))
+bccsn1 <- read.csv("BCCSN Salish Sea Sightings May-Oct 2009-2020_Stredulinsky DFO.csv", header=TRUE, stringsAsFactors = FALSE, strip.white = TRUE, na.strings = c("NA","na","n/a","N/A",""))
 nrow(bccsn1)
+#29296
+str(bccsn1)
+bccsn1$Date<-as.POSIXct(bccsn1$SightingDate, format ="%m/%d/%Y")
+bccsn1$Month<-as.numeric(format(bccsn1$Date,"%m"))
+bccsn1$Day<-as.numeric(format(bccsn1$Date,"%d"))
+bccsn1$Year <- as.numeric(format(bccsn1$Date, "%Y"))
+bccsn1 <- bccsn1[which(bccsn1$Month > 1),]
+bccsn1 <- bccsn1[which(bccsn1$Month < 11),] 
+bccsn1$Year[bccsn1$Year=="3012"]<-"2012"
+bccsn1$Year[bccsn1$Year=="2047"]<-"2017"
+bccsn1$Year[bccsn1$Year=="3041"]<-"2011"
+bccsn1$Year[bccsn1$Year=="2041"]<-"2011"
+unique(bccsn1$Year)
+bccsn1 <- bccsn1[which(bccsn1$Year > 2016),]  
+unique(bccsn1$SpeciesCommonName)
+bccsn1<-filter(bccsn1,SpeciesType %in% c("southern resident", "possible southern resident"))
+str(bccsn1)
+csn<-subset(bccsn1, select=c(15:18))
+str(csn)
 
-bccsn2 <- read.csv("BCCSN Sightings South Salish Sea May-Oct17&Oct20_MOD.csv", header=TRUE, stringsAsFactors = FALSE, strip.white = TRUE, na.strings = c("NA","na","n/a","N/A",""))
-nrow(bccsn2)
+
+#bccsn2 <- read.csv("BCCSN Sightings South Salish Sea May-Oct17&Oct20_MOD.csv", header=TRUE, stringsAsFactors = FALSE, strip.white = TRUE, na.strings = c("NA","na","n/a","N/A",""))
+#nrow(bccsn2)
 
 bccsn0<-read.csv("SmrCombinedduplicatesRemoved_BCCSNAlbers.csv", header=T, stringsAsFactors = FALSE, strip.white = TRUE, na.strings = c("NA","na","n/a","N/A",""))
+str(bccsn0)
 nrow(bccsn0)
 om <- read.csv("DFO_SRKW2017-18_Sources_MOD.csv", header=TRUE, stringsAsFactors = FALSE, strip.white = TRUE, na.strings = c("NA","na","n/a","N/A",""))
 nrow(om)
@@ -145,9 +168,15 @@ nrow(om)
 
 #----Append data----
 
-ww <- rbind(bccsn1,bccsn2,om)
+ww <- rbind(bccsn0,om)
+ww <- rbind(ww,csn)
+str(ww)
 ww <- ww[order(ww$DateTime),]
 nrow(bccsn1)+nrow(bccsn2)+nrow(om)
+ww$Date <- as.Date(with(ww, paste(Year, Month, Day,sep="-")), "%Y-%m-%d")
+ww$Date
+str(ww)
+ww<-subset(ww, select=c(4,5,6,25))
 
 #----Limit time series---
   #We are only including 2017 & 2018 sightings data
@@ -158,6 +187,43 @@ rownames(ww) <- c(1:nrow(ww))
 nrow(ww)
 
 
+
+
+s<-ww%>%
+  group_by(Year,Month)%>%
+  summarise(id = n_distinct(Date))
+str(s)
+s$Year<-as.numeric(s$Year)
+s$Month<-as.numeric(s$Month)
+#s$Date<-paste(s$Year, s$Month)
+s$Date<-as.Date(with(s, paste(Year, Month,"1", sep="-")), "%Y-%m-%d")
+s <- s[order(s$Date),]
+
+ggplot(data=s, aes(x=Year, y=id, group=Year)) +
+  geom_boxplot()+
+  scale_fill_viridis(discrete = TRUE, alpha=0.6) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  theme_ipsum() +
+  theme(
+    legend.position="none",
+    plot.title = element_text(size=11)
+  ) +
+  ggtitle("A boxplot with jitter") +
+  xlab("")
+
+
+ggplot(s, aes(x=Date, y=id,group=1)) +
+  geom_line()+
+scale_fill_viridis(discrete = TRUE, alpha=0.6) +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  theme_ipsum() +
+  theme(
+    legend.position="none",
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+    plot.title = element_text(size=11)
+  ) +
+  ggtitle("A boxplot with jitter") +
+  xlab("")
 #----Populate projected coordinates----
 
   # lon and lat are already in metres (NAD83 Albers)

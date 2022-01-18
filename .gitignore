@@ -29,3 +29,5 @@ vignettes/*.pdf
 # ignore all files in any directory named Data and 
 Data/
 licenses/
+data/
+outputs/

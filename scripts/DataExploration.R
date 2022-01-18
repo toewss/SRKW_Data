@@ -46,7 +46,7 @@ setwd(here("Data","Coast shapefile"))
 COAST=readOGR(".",layer="coast_ALBERS", verbose = FALSE)
 
 
-BCCSNAlbers <- read.csv("data/BCCSN Salish Sea Sightings May-Oct 2009-2020_Stredulinsky DFO.csv")
+BCCSNAlbers <- read.csv("data/NGO data/BCCSN Salish Sea Sightings May-Oct 2009-2020_Stredulinsky DFO.csv")
 Combined <- read.csv("data/SmrCombinedduplicatesRemoved_BCCSNAlbers.csv")
 OM2018<-read.csv("data/OM_Data.csv")
 summary(BCCSNAlbers)
@@ -72,8 +72,8 @@ df %>% count(Date)
 
 df$Year <- as.numeric(format(df$Date, "%Y"))
 df$Month<-as.numeric(format(df$Date,"%m"))
-df <- df[which(df$month > 1),]
-df <- df[which(df$month < 11),]  
+df <- df[which(df$Month > 1),]
+df <- df[which(df$Month < 11),]  
 #df$year[df$year=="3012"]<-"2012"
 str(df)
 df<-df[which(df$SpeciesType =="southern resident")]
