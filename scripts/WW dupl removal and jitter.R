@@ -23,6 +23,7 @@ suppressMessages(library('dplyr'))
 suppressMessages(library('ggplot2'))
 suppressMessages(library('viridis'))
 library(hrbrthemes)
+library(directlabels)
 #----Set working directory----
 
 setwd(here("data","NGO data"))
@@ -148,11 +149,12 @@ bccsn1$Year[bccsn1$Year=="2047"]<-"2017"
 bccsn1$Year[bccsn1$Year=="3041"]<-"2011"
 bccsn1$Year[bccsn1$Year=="2041"]<-"2011"
 unique(bccsn1$Year)
-bccsn1 <- bccsn1[which(bccsn1$Year > 2016),]  
+#bccsn1 <- bccsn1[which(bccsn1$Year > 2016),]  
 unique(bccsn1$SpeciesCommonName)
-bccsn1<-filter(bccsn1,SpeciesType %in% c("southern resident", "possible southern resident"))
+bccsn1<-filter(bccsn1,SpeciesType %in% c("southern resident"))
 str(bccsn1)
-csn<-subset(bccsn1, select=c(15:18))
+bccsn1$Source<-bccsn1$ObserverType
+csn<-subset(bccsn1, select=c(15:19))
 str(csn)
 
 
@@ -162,22 +164,28 @@ str(csn)
 bccsn0<-read.csv("SmrCombinedduplicatesRemoved_BCCSNAlbers.csv", header=T, stringsAsFactors = FALSE, strip.white = TRUE, na.strings = c("NA","na","n/a","N/A",""))
 str(bccsn0)
 nrow(bccsn0)
+bccsn0$Date<-as.Date(with(bccsn0, paste(Year, Month, Day, sep="-")), "%Y-%m-%d")
+
+
 om <- read.csv("DFO_SRKW2017-18_Sources_MOD.csv", header=TRUE, stringsAsFactors = FALSE, strip.white = TRUE, na.strings = c("NA","na","n/a","N/A",""))
 nrow(om)
-
+str(om)
+om$Date<-as.Date(with(om, paste(Year, Month, Day, sep="-")), "%Y-%m-%d")
 
 #----Append data----
 
 ww <- rbind(bccsn0,om)
-ww <- rbind(ww,csn)
+
 str(ww)
 ww <- ww[order(ww$DateTime),]
-nrow(bccsn1)+nrow(bccsn2)+nrow(om)
-ww$Date <- as.Date(with(ww, paste(Year, Month, Day,sep="-")), "%Y-%m-%d")
+nrow(bccsn0)+nrow(om)
+#ww$Date <- as.Date(with(ww, paste(Year, Month, Day,sep="-")), "%Y-%m-%d")
 ww$Date
 str(ww)
-ww<-subset(ww, select=c(4,5,6,25))
-
+ww<-subset(ww, select=c(4,5,6,12,25))
+ww <- rbind(ww,csn)
+nrow(ww)
+nrow(bccsn1)+nrow(bccsn0)+nrow(om)
 #----Limit time series---
   #We are only including 2017 & 2018 sightings data
 unique(ww$Year)
@@ -185,13 +193,14 @@ ww <- ww[which(ww$Year < 2019),]
 rownames(ww) <- c(1:nrow(ww))
 
 nrow(ww)
-
+str(ww)
 
 
 
 s<-ww%>%
   group_by(Year,Month)%>%
   summarise(id = n_distinct(Date))
+sum(s$id)
 str(s)
 s$Year<-as.numeric(s$Year)
 s$Month<-as.numeric(s$Month)
@@ -202,7 +211,7 @@ s <- s[order(s$Date),]
 ggplot(data=s, aes(x=Year, y=id, group=Year)) +
   geom_boxplot()+
   scale_fill_viridis(discrete = TRUE, alpha=0.6) +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  geom_point(color="black", size=0.4, alpha=0.9) +
   theme_ipsum() +
   theme(
     legend.position="none",
@@ -224,6 +233,20 @@ scale_fill_viridis(discrete = TRUE, alpha=0.6) +
   ) +
   ggtitle("A boxplot with jitter") +
   xlab("")
+s$Month<-factor(s$Month)
+ggplot(data=s, aes(x=Date, y=id, group=Month, fill = Month, lablel=Month)) +
+  geom_bar(position="stack", stat="identity")+
+  
+  scale_fill_viridis(discrete = TRUE, alpha=0.6) +
+  geom_point(color="black", size=0.4, alpha=0.9) +
+  theme_ipsum() +
+  theme(
+    plot.title = element_text(size=11)
+  ) +
+  ggtitle("SRKW Days by Month and Year") +
+  xlab("")
+
+
 #----Populate projected coordinates----
 
   # lon and lat are already in metres (NAD83 Albers)
