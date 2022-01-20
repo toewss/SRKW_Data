@@ -26,7 +26,7 @@ library(hrbrthemes)
 library(directlabels)
 #----Set working directory----
 
-setwd(here("data","NGO data"))
+setwd(here("Data","NGO Data"))
 
 
 #----Load required functions----
@@ -167,7 +167,7 @@ nrow(bccsn0)
 bccsn0$Date<-as.Date(with(bccsn0, paste(Year, Month, Day, sep="-")), "%Y-%m-%d")
 
 
-om <- read.csv("DFO_SRKW2017-18_Sources_MOD.csv", header=TRUE, stringsAsFactors = FALSE, strip.white = TRUE, na.strings = c("NA","na","n/a","N/A",""))
+om <- read.csv("DFO_SRKW2017_18_Sources_MOD.csv", header=TRUE, stringsAsFactors = FALSE, strip.white = TRUE, na.strings = c("NA","na","n/a","N/A",""))
 nrow(om)
 str(om)
 om$Date<-as.Date(with(om, paste(Year, Month, Day, sep="-")), "%Y-%m-%d")
